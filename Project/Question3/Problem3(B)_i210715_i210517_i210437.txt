@@ -1,0 +1,105 @@
+#include<iostream>
+#include<fstream>
+#include<sstream>
+#include<string>
+using namespace std;
+int shortestPath(const string fileName) {
+
+	// Open the file
+	ifstream inputFile(fileName);
+
+	if (!inputFile.is_open()) {
+		cout << "Error opening file." << endl;
+		return 1;
+	}
+
+	string size = "";
+	getline(inputFile, size);//to get size
+
+	char** array1 = new char* [stoi(size)];
+	for (int i = 0; i < stoi(size); i++)
+	{
+		array1[i] = new char[2];
+	}
+
+
+	stringstream buffer;
+	buffer << inputFile.rdbuf();
+	string fileContent = buffer.str();
+	char ch;
+	string data;
+	int x1 = 0, y1 = 0;// for controlling array1
+	int i = 0;
+	int counter = 0;// for number of elements
+	while (fileContent[i] != '\0')
+	{
+		if (fileContent[i] != ' ' && fileContent[i] != '\n')
+		{
+			counter++;
+			array1[x1][y1] = fileContent[i];
+			y1++;
+		}
+		else if (fileContent[i] == '\n')
+		{
+			x1++;
+			y1 = 0;
+
+			if (fileContent[i] == '\n' && fileContent[i + 1] == '\n')
+			{
+				i++;
+				break;
+			}
+		}
+		i++;
+	}
+	int* array2 = new int[x1];
+	int x3 = 0;//to iterate array2
+	int index = x1;
+	char val1 = '\0';//picking values from array;
+	int x2 = 1;// index to iterate array
+	int j = 0;//loop iteration neede in global
+	bool flag = true;
+	while (x2 < index)
+	{
+		val1 = array1[x2][1];
+
+		for (j = 0; j < x2; j++)
+		{
+			if (val1 == array1[j][0])
+			{
+				array2[x3] = x2 - j;
+				x3++;
+				array2[x3] = j;
+				x3++;
+				flag = false;
+				break;
+			}
+		}
+		x2++;
+	}
+	if (!flag)
+	{
+		int minElement = array2[0];
+		int index2 = 0;
+		for (int a = 0; a < x3; a += 2) {
+			if (array2[a] < minElement) {
+				minElement = array2[a];
+				index2 = a;
+			}
+		}
+		cout << endl << array2[index2] + 1 << endl;// adding one make it perfect
+		for (int x = array2[index2 + 1]; x <= array2[index2] + array2[index2 + 1]; x++)
+		{
+			cout << array1[x][0] << " -> ";
+		}
+		cout << array1[array2[index2 + 1]][0] << endl;
+	}
+	else
+	{
+		cout << -1;
+	}
+}
+int main()
+{
+	shortestPath("testcase1.txt");
+}

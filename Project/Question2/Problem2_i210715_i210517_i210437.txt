@@ -1,0 +1,253 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+int diagonalOccurence(const string fileName) {
+    // Open the file
+    ifstream inputFile(fileName);
+
+    if (!inputFile.is_open()) {
+        cout << "Error opening file." << endl;
+        return 1;
+    }
+
+    
+    string firstLine;
+    getline(inputFile, firstLine);//to ignore first line
+    int n = 0;
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //                                              Storing in Array                                                           //
+ /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    string data;//to store whole data from file
+    char ch;
+    int counter = 0;//to iterate array data
+    int stringSizeCounter=1;
+    int columnCounter = 0;// for calculating the size of array's row
+    int noOfElements = 0; // total number of elements in array
+    int noOfElements2 = 0; // total number of elements in pattern
+    bool allow = false;
+    bool allow2 = true;
+    while (inputFile.get(ch)) {
+         
+         data += ch;
+         if (ch != '\n'&& allow2)
+         {
+             if (ch != ',')
+             {
+                 columnCounter++;//calculating row size;
+             }
+         }
+         else
+         {
+             allow2 = false;
+         }
+        
+         
+         counter++;
+    }
+    char **array2=new char*[columnCounter];//for storing useful data
+    for (int i = 0; i < columnCounter; i++)
+    {
+        array2[i] = new char[columnCounter];
+    }
+    char* array3 = new char [columnCounter];//for storing the main comparing string
+    inputFile.close();
+    int i = 0;
+    int j = 0;
+    int forCheck = 0;//counter to iterrate whole file data
+    bool flag = true;
+    int stringCounter = 0;// string size
+    bool flag2 = false;//to check next character in '\n'
+    int index = 0;// to iterate string array
+    while (forCheck < counter)
+    {
+
+          ///////////////////////////////////////////
+         //              Storing Array            //
+        ///////////////////////////////////////////
+        if (i!=0 && flag2 && data[forCheck] == '\n' && flag)
+        {
+
+            flag = false;//flag equal to false so no more panga with array2
+            forCheck++;
+            
+        }
+        else if (flag)
+        {
+            if (data[forCheck] == '\n')
+            {
+                array2[i][j] = '\0';
+                flag2 = true;
+                j = 0;
+                i++;
+            }
+            else if (data[forCheck] != ',')
+            {
+                flag2 = false;
+                array2[i][j] = data[forCheck];// store the array only 
+                j++;
+            }
+            forCheck++;
+        }
+
+
+            ///////////////////////////////////////////
+           //              Storing String           //
+          ///////////////////////////////////////////
+
+        if (!flag)
+        {
+           
+            if (data[forCheck] == '\n')
+            {
+                array3[index] = '\0';// '\0' to end the array '
+                forCheck++;
+                forCheck++;
+                break;
+            }
+            array3[index] = data[forCheck];// store the string only 
+            index++;
+            forCheck++;
+        }
+    }
+    for (int a = index; a > 1; a--)
+    {
+        stringCounter = a - 1;
+        if (index % stringCounter == 0)//find string array size
+        {
+            break;
+        }
+    }
+        ///////////////////////////////////////////
+        //         Creating String Array         //
+        ///////////////////////////////////////////
+
+    char** array4 = new char* [stringCounter];
+    for (int i = 0; i < stringCounter; i++)
+    {
+        array4[i] = new char[stringCounter];
+    }
+    int x = 0;
+    int y = 0;
+    ///////////////////////////////////////////
+    //          Storing String Array         //
+    ///////////////////////////////////////////
+    for (int i = 0; i < index; i++)
+    {
+        if (array3[i] != '\n')
+        {
+            if (i > 1)
+            {
+                if (((x+1) * stringCounter) % i == 0)// condition to move to next row
+                {
+                    y = 0;
+                    x++;
+                }
+            }
+            array4[x][y] = array3[i];
+            y++;
+        }
+        forCheck++;
+    }
+
+
+
+
+    int x1 = 0, y1 = 0; // Indexes of  Main Array
+    int x2 = 0, y2 = 0;// Indexes of Pattern Array 
+    int helper1 = 0;// for hepling traversing pattern
+    int helper2 = 0;// for helping traversing array
+    int misMatch = 0;// for count of mismatching ones
+    int countOfMatch = 0; // count element matched
+    noOfElements = columnCounter * columnCounter; // No of Elements in Main Array 
+    noOfElements2 = index;// No of Elements in Pattern Array
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //                                          Finding Occurence in Array                                                     //
+ /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    while (noOfElements != 0) // to check all elements incase no match exists
+    {
+        if (x1 >= columnCounter)
+        {
+            x1 = columnCounter - 1;
+        }
+        if (y1 >= columnCounter)
+        {
+            y1 = columnCounter - 1;
+        }
+
+        if (array2[x1][y1] != array4[x2][y2]) // if not matching increase index in column 
+        {
+            if (y1 == columnCounter)
+            {
+                break;
+            }
+            y1++;
+            misMatch++;
+        }
+        else
+        {
+            countOfMatch++;
+            y1++;
+            y2++;
+
+            if (y1 >= stringCounter+helper1+misMatch && y2 >= stringCounter)
+            {
+                    
+                y2 = 0;
+                if (x1 == columnCounter)
+                {
+                    break;
+                }
+                x1++;
+                x2++;
+                if (x1 >= columnCounter-1 && y1 >= columnCounter-1) // check if the element is last element of Main Array
+                {
+                    break;
+                }
+                y1 = 0 + helper1 + misMatch;
+                if (x1 >= stringCounter + helper1 && x2 >= stringCounter) // Check last Element of Pattern Array
+                {
+                    helper1+=1;
+                    helper2 += stringCounter;
+                      
+                    x1 = 0+helper2; 
+                    if (x1 >= columnCounter)
+                    {
+                        break;
+                    }
+                    y1 = 0 + helper1+misMatch;
+                    x2 = 0;
+                }
+            }
+            
+        }
+
+            noOfElements--;
+    }
+
+    return countOfMatch / index;
+}
+int main()
+{
+    int occurances = 0;
+    occurances = diagonalOccurence("TestCase3.txt");
+    if (occurances > 1)
+    {
+        cout <<"\n\nTotal Diagonal Occurances are:" << occurances << "\n\n";
+    }
+    else
+    {
+        cout << "\n\nTotal Diagonal Occurances are:" << 0 << "\n\n";
+    }
+}

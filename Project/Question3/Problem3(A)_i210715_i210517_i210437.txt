@@ -1,0 +1,358 @@
+#include<iostream>
+#include<list>
+#include <fstream>
+#include <string>
+#include<iomanip>
+
+using namespace std;
+
+class Node 
+{
+public:
+    char location;
+
+    Node(char data) : location(data) {}
+};
+
+struct Edge 
+{
+    Node* destination;
+    int distance;
+
+    Edge(Node* dst, int dist) : destination(dst), distance(dist) {}
+};
+
+class Graph 
+{
+public:
+    list<list<Edge>> adjacencyList;
+
+    Graph() {}
+
+    void addNode(Node* node) 
+    {
+        list<Edge> newList;
+        newList.push_back(Edge(node, 0)); // Add a self-loop with distance 0
+        adjacencyList.push_back(newList);
+    }
+
+    void addEdge(int src, int dst, int distance) 
+    {
+        list<list<Edge>>::iterator sourceList = next(adjacencyList.begin(), src);
+        list<list<Edge>>::iterator destList = next(adjacencyList.begin(), dst);
+
+        (*sourceList).push_back(Edge((*destList).begin()->destination, distance));
+    }
+
+    bool checkEdge(int src, int dst) 
+    {
+        list<list<Edge>>::iterator currentList = next(adjacencyList.begin(), src);
+        list<list<Edge>>::iterator dstList = next(adjacencyList.begin(), dst);
+
+        for (Edge& edge : *currentList)
+        {
+            if (edge.destination == (*dstList).front().destination)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void print() 
+    {
+        int index = 0;
+        for (const list<Edge>& edgeList : adjacencyList) 
+        {
+            cout << "Node " << static_cast<char>('A' + index++) << " -> ";
+            for (const Edge& edge : edgeList) 
+            {
+                if (edge.destination != nullptr && edge.destination->location != ('A' + index - 1))
+                {
+                    //cout << edge.destination->location << " (Distance: " << edge.distance << ") -> ";
+                    cout << edge.destination->location << " -> ";
+                }
+            }
+            cout << endl;
+        }
+    }
+
+    void printDistances() 
+    {
+        const int numNodes = 4;
+
+        // Creating a matrix to store distances, initialized with zeros
+        int distances[numNodes][numNodes];
+        for (int i = 0; i < numNodes; ++i)
+        {
+            for (int j = 0; j < numNodes; ++j) 
+            {
+                distances[i][j] = 0;
+            }
+        }
+
+        // Updating distances based on the adjacency list
+        int index = 0;
+        for (const list<Edge>& edgeList : adjacencyList)
+        {
+            for (const Edge& edge : edgeList) 
+            {
+                int destinationIndex = edge.destination->location - 'A';
+                distances[index][destinationIndex] = edge.distance;
+            }
+            index++;
+        }
+
+        // Printing the distances
+        cout << "Distances among nodes:" << endl;
+        cout << "   ";
+        for (int i = 0; i < numNodes; ++i)
+        {
+            cout << static_cast<char>('A' + i) << "  ";
+        }
+        cout << endl;
+
+        for (int i = 0; i < numNodes; ++i)
+        {
+            cout << static_cast<char>('A' + i) << "  ";
+            for (int j = 0; j < numNodes; ++j)
+            {
+                cout << distances[i][j] << "  ";
+            }
+            cout << endl;
+        }
+    }
+
+    int getDistanceBetweenNodes(char srcNode, char dstNode)
+    {
+        int srcIndex = srcNode - 'A';
+        int dstIndex = dstNode - 'A';
+
+        for (const list<Edge>& edgeList : adjacencyList) 
+        {
+            if (!edgeList.empty() && edgeList.front().destination->location == srcNode) {
+                for (const Edge& edge : edgeList) 
+                {
+                    if (edge.destination->location == dstNode) 
+                    {
+                        return edge.distance;
+                    }
+                }
+            }
+        }
+
+        return 0; // Return 0 if nodes or an edge between them is not found
+    }
+
+
+
+};
+
+int main()
+{
+
+    //MAKING AN INSTANCE OF CLASS GRAPH
+    Graph g;
+
+    //CREATING NODES
+    Node* nodeA = new Node('A');
+    Node* nodeB = new Node('B');
+    Node* nodeC = new Node('C');
+    Node* nodeD = new Node('D');
+
+    g.addNode(nodeA);
+    g.addNode(nodeB);
+    g.addNode(nodeC);
+    g.addNode(nodeD);
+
+
+    //FILE READING(FOR MAKING EDGES..CHUNK:01)
+    ifstream file("testcase3.txt");
+
+    if (file.is_open())
+    {
+        string line;
+        int emptyLineCounter = 0;
+
+        while (getline(file, line))
+        {
+            if (line.empty())
+            {
+
+                break;
+
+            }
+            if (!line.empty())
+            {
+
+                //  display the line
+               //cout << line << endl;
+
+               //^^^^^^^^^^^SOURCE^^^^^^^^^^^^^^^^
+                int source;
+                switch (line[0])
+                {
+                case 'A':
+                {
+                    source = 0;
+                    break;
+                }
+
+                case 'B':
+                {
+                    source = 1;
+                    break;
+                }
+
+                case 'C':
+                {
+                    source = 2;
+                    break;
+                }
+
+                case 'D':
+                {
+                    source = 3;
+                    break;
+                }
+
+                }
+
+                //^^^^^^^^^^DESTINATION^^^^^^^^^^^^
+                int destination;
+                switch (line[2])
+                {
+                case 'A':
+                {
+                    destination = 0;
+                    break;
+                }
+
+                case 'B':
+                {
+                    destination = 1;
+                    break;
+                }
+
+                case 'C':
+                {
+                    destination = 2;
+                    break;
+                }
+
+                case 'D':
+                {
+                    destination = 3;
+                    break;
+                }
+
+                }
+
+                //Extracting distance from the indx
+                //Converting string to int
+                int index = 4;
+                string extract = line.substr(index, 2);
+
+                //^^^^^^^^^^^DISTANCE^^^^^^^^^^^^^^
+                int distanceBTWthem = stoi(extract);
+
+                //creating undirected graph
+                //SENDING THE VALUES READ FROM FILE TO CREATE EDGE
+                g.addEdge(source, destination, distanceBTWthem);
+                g.addEdge(destination, source, distanceBTWthem);
+
+                ////Validating------->
+                //cout <<"I'm going to print the values:) " << endl;
+                //cout << source << endl;
+                //cout << destination << endl;
+                //cout << distanceBTWthem << endl;
+
+            }
+
+        }
+
+        file.close();
+    }
+
+    else
+    {
+        cout << "Unable to open file!" << endl;
+    }
+
+
+    /*
+     g.addEdge(0, 1, 10); // Add an edge from node 0 to node 1 with distance 10
+    g.addEdge(0, 2, 20); // Add an edge from node 0 to node 2 with distance 20
+    g.addEdge(1, 2, 36);
+
+    */
+
+
+    //PRINTING POINTS
+    g.print(); // Print the adjacency list
+    //g.printDistances();
+   
+
+   int totalTimeTaken = 0;
+
+   //It was reading an extra line
+   int countPathLines = -1;
+
+    //FILE READING(FOR TRACING POSSIBLE PATHS..CHUNK:02)
+    ifstream pathReadingfile("testcase3.txt");
+    string pathLine;
+    bool foundEmptyLine = false;
+    cout << endl;
+    if (pathReadingfile.is_open())
+    {
+    while (getline(pathReadingfile, pathLine))
+    {
+        if (pathLine.empty() && !foundEmptyLine)
+        {
+            // Found the first empty line
+            foundEmptyLine = true;
+            continue;
+        }        
+        if (foundEmptyLine)
+        {
+            // Process lines after the first empty line
+            //cout << pathLine << "  LENGTH IS:" << pathLine.length() << endl;
+            cout << pathLine <<  endl;
+            countPathLines++;
+
+            // MAIN LOGIC TO TRACE EVERY PATH AND GET ITS DISTANCE
+            for (int i = 0; i < pathLine.length(); ++i) 
+            {
+                if (pathLine[i] != '-' && pathLine[i + 1] == '-') 
+                {                    
+                    totalTimeTaken += g.getDistanceBetweenNodes(pathLine[i], pathLine[i + 2]);
+                    //cout << "TTT" << totalTimeTaken << endl;
+                }
+            }
+
+            if (pathLine.empty())
+            {
+                break;
+            }
+        }
+    }
+
+    pathReadingfile.close(); // Close the file
+
+    }
+
+    else
+    {
+        cout << "Unable to open file!" << endl;
+    }
+
+
+   // cout <<"Total Time Taken is:" << totalTimeTaken << endl;
+   // cout <<"Total Possible Paths Traced are: " << countPathLines << endl;
+
+    //Precision set to 2 decimal places as in testcases
+    float AverageTime = static_cast<float>(totalTimeTaken)/ countPathLines;
+    cout << "Average Time is:  " << fixed << setprecision(2) << AverageTime << endl;
+
+    return 0;
+}
